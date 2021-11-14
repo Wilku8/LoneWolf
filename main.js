@@ -1,5 +1,4 @@
 const { Client, Collection, Intents } = require('discord.js');
-const { token } = require('./config.json');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 const config = require('./config.json');
 const { MessageEmbed } = require('discord.js');
@@ -7,7 +6,10 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 client.commands = new Collection();
 const fs = require('fs');
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-
+const cmds = require('./command-handler.js');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const { clientId, token } = require('./config.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -18,6 +20,32 @@ module.exports = {
 	},
 };
 
+client.on("guildCreate", guild => {
+	console.log("Joined a new guild: " + guild.name);
+	console.log("New guild id: " + guild.id);
+	const commands = [];
+	const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
+	for (const file of commandFiles) {
+		const command = require(`./commands/${file}`);
+		commands.push(command.data.toJSON());
+	}
+
+	const rest = new REST({ version: '9' }).setToken(token);
+
+	(async () => {
+		try {
+			await rest.put(
+				Routes.applicationGuildCommands(clientId, guild.id),
+				{ body: commands },
+			);
+
+			console.log('Successfully registered application commands.');
+		} catch (error) {
+			console.error(error);
+		}
+	})();
+});
 
 client.on("ready", () => {
   console.log(`Ready!`)
@@ -30,13 +58,6 @@ client.on("messageCreate", message => {
         message.reply("https://discord.com/api/oauth2/authorize?client_id=880834712766140427&permissions=141671001335&scope=bot%20applications.commands")
     }
 });
-
-//let helpENG = new MessageEmbed()
-//.setColor('#000000')
-//.setTitle('Lone Wolf')
-//.setAuthor('White Wolf#0158', 'https://i.pinimg.com/originals/88/5e/ba/885eba4f83dea7b259fb270bb5f3d027.jpg')
-//.setURL('https://discord.gg/Msr9jsnP8u')
-//.set
 
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
@@ -71,3 +92,4 @@ client.on('interactionCreate', async interaction => {
 		return interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
+

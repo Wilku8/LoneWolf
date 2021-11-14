@@ -3,5 +3,7 @@
     "prefix": "w.",
     "prefix2": "W.",
     "clientId": "880834712766140427",
-    "guildId": "880838663955689562"
+    "guildId": "880838663955689562",
+    "inviteLink": "https://discord.com/api/oauth2/authorize?client_id=880834712766140427&permissions=141671001335&scope=bot%20applications.commands",
+    "discordLink": "https://discord.gg/Msr9jsnP8u"
 }
